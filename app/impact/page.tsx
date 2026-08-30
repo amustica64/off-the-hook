@@ -110,19 +110,12 @@ export default async function ImpactPage() {
 							<h2>Behind the numbers.</h2>
 						</Reveal>
 						<div className="mt-8">
-							<StoryCarousel
-								stories={stories.map((s) => ({
-									...s,
-									cover: {
-										"danny-makes-bread": "/heroes/bread-and-menu.webp",
-										"michelle-runs-the-pass": "/heroes/training-session.webp",
-										"what-the-kitchen-taught-us":
-											"/heroes/plate-beef-shin.webp",
-										"the-tuesday-lunch-club":
-											"/heroes/dining-room-morning.webp",
-									}[s.slug],
-								}))}
-							/>
+							{/*
+							  Covers land with the media table (Phase 8) against the new
+							  master anchors. StoryCard renders the Doc 09 §1.6 slot on its
+							  own when a cover is absent (Doc 20 open item 3).
+							*/}
+							<StoryCarousel stories={stories} />
 						</div>
 					</Container>
 				</Section>

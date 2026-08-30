@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { Reveal } from "@/components/motion/reveal";
 import { CtaBand } from "@/components/site/cta-band";
 import { ImageSlot } from "@/components/site/image-slot";
@@ -45,17 +44,13 @@ export default async function Home() {
 	).filter((m): m is NonNullable<typeof m> => Boolean(m));
 	const headline = metrics.find((m) => m.metric_key === "employment_rate");
 
-	/* Interim covers from the pack visuals until the media table lands (Phase 8). */
-	const covers: Record<string, string> = {
-		"danny-makes-bread": "/heroes/bread-and-menu.webp",
-		"michelle-runs-the-pass": "/heroes/training-session.webp",
-		"what-the-kitchen-taught-us": "/heroes/plate-beef-shin.webp",
-		"the-tuesday-lunch-club": "/heroes/dining-room-morning.webp",
-	};
-	const storiesWithCovers = stories.map((s) => ({
-		...s,
-		cover: covers[s.slug],
-	}));
+	/*
+	  Story covers are empty until the media table lands (Phase 8) and the new
+	  master anchors are signed off (Doc 19 §4). The whole pack set was retired
+	  on 31 August: it was generated against the v1 Michelin register that Doc
+	  18 revised withdraws. StoryCard falls back to the Doc 09 §1.6 cream panel
+	  on its own when `cover` is undefined, so there is nothing to pass here.
+	*/
 
 	return (
 		<>
@@ -98,7 +93,6 @@ export default async function Home() {
 							<Reveal delay={0.16}>
 								<ImageSlot
 									label="Plate finished at the pass, arm in frame"
-									src="/heroes/hands-at-the-pass.webp"
 									ratio="16/11"
 								/>
 							</Reveal>
@@ -187,7 +181,7 @@ export default async function Home() {
 							</p>
 						</div>
 						<div className="mt-8">
-							<StoryCarousel stories={storiesWithCovers} />
+							<StoryCarousel stories={stories} />
 						</div>
 						<TextLink href="/stories">All stories</TextLink>
 					</Container>
@@ -202,7 +196,6 @@ export default async function Home() {
 							<Reveal>
 								<ImageSlot
 									label="Full room mid-service, warm light"
-									src="/heroes/room-mid-service.webp"
 									ratio="4/3"
 									sizes="(max-width: 1024px) 100vw, 50vw"
 								/>
@@ -264,12 +257,18 @@ export default async function Home() {
 			<Section spacing="md">
 				<Container width="narrow">
 					<div className="flex items-start gap-5">
-						<Image
-							src="/heroes/portrait-anne.webp"
-							alt="Anne Kiragu, founder"
-							width={96}
-							height={96}
-							className="h-24 w-24 shrink-0 rounded-full border border-divider object-cover object-top"
+						{/*
+						  Doc 09 §3.1 puts a 96px circular portrait of Anne here, and circles
+						  are reserved for people. The slot stays, empty, until the real shoot
+						  lands: a founder's likeness is a real-shoot subject under the Doc 18
+						  safe lane and is never generated. Labelled for screen readers rather
+						  than in view, because 96px cannot carry the eyebrow text Doc 09 §1.6
+						  asks for at larger sizes.
+						*/}
+						<div
+							role="img"
+							aria-label="Photograph to come: Anne Kiragu, founder"
+							className="h-24 w-24 shrink-0 rounded-full border border-divider bg-surface"
 						/>
 						<div>
 							<p className="text-text-secondary">

@@ -16,13 +16,13 @@ export const STORY_CATEGORIES = [
 	{ key: "community", label: "Community" },
 ] as const;
 
-/* Interim covers until the media table lands (Phase 8). */
-export const STORY_COVERS: Record<string, string> = {
-	"danny-makes-bread": "/heroes/bread-and-menu.webp",
-	"michelle-runs-the-pass": "/heroes/training-session.webp",
-	"what-the-kitchen-taught-us": "/heroes/plate-beef-shin.webp",
-	"the-tuesday-lunch-club": "/heroes/dining-room-morning.webp",
-};
+/*
+  Story covers land with the media table (Phase 8), against the new master
+  anchors. The previous map pointed at the retired pack set (Doc 20 open item
+  3). Empty is correct: StoryCard renders the Doc 09 §1.6 cream panel when a
+  cover is absent.
+*/
+export const STORY_COVERS: Record<string, string> = {};
 
 export async function getStories(category?: string) {
 	if (!db) return [];

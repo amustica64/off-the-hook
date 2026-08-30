@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { Reveal } from "@/components/motion/reveal";
 import { CtaBand } from "@/components/site/cta-band";
 import { ImageSlot } from "@/components/site/image-slot";
@@ -19,13 +18,16 @@ export const revalidate = 300;
 
 /* Doc 09 §3.4. Ken-burns (R1) lands in Phase 7. Location section hidden until the address is set (Doc 04). */
 
+/*
+  Atmosphere strip captions only. Every frame is a slot until the two master
+  anchors are signed off (Doc 20 open items 1 and 2) and the set is re-rolled
+  against them (Doc 20 open item 3). "The kitchen, before doors" previously
+  carried a portrait, which is a real-shoot subject under the Doc 18 safe lane.
+*/
 const atmosphere = [
-	{ src: "/heroes/portrait-chef.webp", caption: "The kitchen, before doors" },
-	{ src: "/heroes/plate-beef-shin.webp", caption: "The pass" },
-	{
-		src: "/heroes/dining-room-morning.webp",
-		caption: "The dining room, first light",
-	},
+	{ caption: "The kitchen, before doors" },
+	{ caption: "The pass" },
+	{ caption: "The dining room, first light" },
 ];
 
 export default async function RestaurantPage() {
@@ -38,17 +40,22 @@ export default async function RestaurantPage() {
 		<>
 			{/* Full-bleed hero, square corners, text on a solid ink panel (no gradients). */}
 			<section className="relative aspect-[4/5] w-full md:aspect-[16/9] md:max-h-[70dvh]">
-				<Image
-					src="/heroes/room-mid-service.webp"
-					alt="The dining room mid-service, warm light, staff between tables"
-					fill
-					priority
-					sizes="100vw"
-					className="object-cover"
+				{/*
+				  The interior frame waits on the new master anchor, which Doc 20 open
+				  item 2 records as generated before the register settled and never
+				  taste-passed. Until it lands the hero is the Doc 09 §1.6 slot.
+				  The overlay panel goes fully opaque rather than 65 percent, because
+				  ink at 65 percent over a cream panel would not hold the 4.5:1 the
+				  Doc 09 §3.4 sign-off requires.
+				*/}
+				<div
+					role="img"
+					aria-label="Photograph to come: the dining room mid-service, warm light"
+					className="absolute inset-0 border-b border-divider bg-surface"
 				/>
 				<div className="absolute inset-x-0 bottom-0 p-4 md:p-8">
 					<Reveal>
-						<div className="max-w-xl bg-ink-900/65 p-6 text-cream-25 md:p-8">
+						<div className="max-w-xl bg-ink-900 p-6 text-cream-25 md:p-8">
 							<h1 className="text-cream-25">Off the Hook, the restaurant.</h1>
 							<Lead className="mt-3 text-cream-100">
 								A working kitchen with a story on every plate.
@@ -73,10 +80,9 @@ export default async function RestaurantPage() {
 				<Container>
 					<div className="grid gap-6 md:grid-cols-3">
 						{atmosphere.map((a, i) => (
-							<Reveal key={a.src} delay={i * 0.08}>
+							<Reveal key={a.caption} delay={i * 0.08}>
 								<ImageSlot
 									label={a.caption}
-									src={a.src}
 									ratio="4/5"
 									sizes="(max-width: 768px) 100vw, 33vw"
 								/>
@@ -150,7 +156,6 @@ export default async function RestaurantPage() {
 							<Reveal>
 								<ImageSlot
 									label="A long table laid for a private dinner"
-									src="/heroes/bread-and-menu.webp"
 									ratio="4/3"
 									sizes="(max-width: 1024px) 100vw, 50vw"
 								/>

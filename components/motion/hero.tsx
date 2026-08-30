@@ -36,8 +36,13 @@ import { useCanWarp, useMotionPreference } from "./use-motion-preference";
 const { hero, duration, ease, stagger, travel } = motionTokens;
 
 export type HeroChapter = {
-	/** Path under /public/heroes */
-	image: string;
+	/**
+	 * Path under /public/heroes. Optional: with no frame the layer renders the
+	 * Doc 09 §1.6 slot instead. Every pack image was retired on 31 August as
+	 * off-register (Doc 20 open item 3), so this is the current state for all
+	 * chapters until the two master anchors are signed off.
+	 */
+	image?: string;
 	/** Describes the photograph for screen readers. Never decorative here. */
 	alt: string;
 	kicker: string;
@@ -57,7 +62,6 @@ export type HeroChapter = {
  */
 export const heroChapters: HeroChapter[] = [
 	{
-		image: "/heroes/hands-at-the-pass.webp",
 		alt: "Plates going out under the pass in a working kitchen",
 		kicker: "Restaurant and academy, London",
 		headline: "Real work. Real qualifications. Real chances.",
@@ -68,7 +72,6 @@ export const heroChapters: HeroChapter[] = [
 		],
 	},
 	{
-		image: "/heroes/plate-beef-shin.webp",
 		alt: "A plate of beef shin with mash and greens",
 		kicker: "This week on the pass",
 		headline: "Every plate carries a story.",
@@ -79,7 +82,6 @@ export const heroChapters: HeroChapter[] = [
 		],
 	},
 	{
-		image: "/heroes/training-session.webp",
 		alt: "Hands working at a kitchen bench during service",
 		kicker: "Inside the kitchen",
 		headline: "Skill you can see.",
@@ -90,6 +92,39 @@ export const heroChapters: HeroChapter[] = [
 		],
 	},
 ];
+
+/*
+  One frame per chapter, or the Doc 09 §1.6 slot when there is none. Doc 17 §7
+  is explicit that swapping hero images "is a data change, not a motion change",
+  so the engine below is untouched by the frames being absent.
+*/
+function ChapterFrame({
+	chapter,
+	isFirst,
+}: {
+	chapter: HeroChapter;
+	isFirst: boolean;
+}) {
+	if (!chapter.image) {
+		return (
+			<div
+				role="img"
+				aria-label={`Photograph to come: ${chapter.alt}`}
+				className="absolute inset-0 bg-surface"
+			/>
+		);
+	}
+	return (
+		<Image
+			src={chapter.image}
+			alt={chapter.alt}
+			fill
+			priority={isFirst}
+			sizes="100vw"
+			className="object-cover"
+		/>
+	);
+}
 
 export default function Hero({
 	chapters = heroChapters,
@@ -175,7 +210,7 @@ export default function Hero({
 						// photograph. Chapters are a fixed, ordered list that is never sorted or
 						// filtered, so the index is a stable part of the identity here.
 						// biome-ignore lint/suspicious/noArrayIndexKey: fixed ordered list, index is stable identity
-						key={`${chapter.image}-${i}`}
+						key={`${chapter.headline}-${i}`}
 						chapter={chapter}
 						index={i}
 						total={chapters.length}
@@ -195,7 +230,7 @@ export default function Hero({
 					{chapters.map((chapter, i) => (
 						<button
 							// biome-ignore lint/suspicious/noArrayIndexKey: fixed ordered list, index is stable identity
-							key={`${chapter.image}-${i}`}
+							key={`${chapter.headline}-${i}`}
 							type="button"
 							onClick={() => jumpTo(i)}
 							aria-current={active === i ? "true" : undefined}
@@ -371,14 +406,7 @@ function ChapterLayer({
 				aria-hidden={!isActive}
 				inert={!isActive}
 			>
-				<Image
-					src={chapter.image}
-					alt={chapter.alt}
-					fill
-					priority={isFirst}
-					sizes="100vw"
-					className="object-cover"
-				/>
+				<ChapterFrame chapter={chapter} isFirst={isFirst} />
 				<ChapterCopy chapter={chapter} isActive={isActive} isReduced />
 			</motion.div>
 		);
@@ -410,14 +438,7 @@ function ChapterLayer({
 			inert={!isActive}
 		>
 			<motion.div className="absolute inset-0" style={{ scale, filter }}>
-				<Image
-					src={chapter.image}
-					alt={chapter.alt}
-					fill
-					priority={isFirst}
-					sizes="100vw"
-					className="object-cover"
-				/>
+				<ChapterFrame chapter={chapter} isFirst={isFirst} />
 			</motion.div>
 
 			{/* The hairline riding the wipe edge. Only meaningful with the wipe. */}

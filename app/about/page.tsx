@@ -40,9 +40,10 @@ export default function AboutPage() {
 					<h2>Anne Kiragu, founder.</h2>
 					<div className="mt-6 lg:float-right lg:-mr-40 lg:ml-8 lg:w-80">
 						<Reveal>
+							{/* Real shoot only, per Doc 18 safe lane. Anne's portrait is never
+							    generated, and the slot stays empty until the shoot lands. */}
 							<ImageSlot
 								label="Anne Kiragu, portrait in the kitchen"
-								src="/heroes/portrait-anne.webp"
 								ratio="4/5"
 								sizes="320px"
 							/>
