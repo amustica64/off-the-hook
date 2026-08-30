@@ -1,0 +1,267 @@
+@import "tailwindcss";
+
+/*
+  Off the Hook design tokens. Source: Doc 07 section 3, amended by Doc 12 section 6.
+  Doc 12 fixes applied: no pure white (bg-elev), distinct success green, Doc 02 status
+  set with --status-warning naming plus --status-info, --cream-25 defined, --forest-500
+  as the single dark-theme accent name.
+*/
+
+:root {
+  /* Ink (browns) */
+  --ink-900: #1F1912;
+  --ink-700: #3D2F22;
+  --ink-500: #6B5A45;
+  --ink-300: #9C8C74;
+
+  /* Cream (paper) */
+  --cream-25:  #F7F1DF;
+  --cream-50:  #FAF5E9;
+  --cream-100: #F3EBD8;
+  --cream-200: #E7DBBF;
+  --cream-350: #CFC0A0;
+
+  /* Forest (primary accent) */
+  --forest-100: #DDE7D6;
+  --forest-500: #5B7C56;
+  --forest-600: #3E5E3A;
+  --forest-700: #2E4A2C;
+
+  /* Secondary accents */
+  --olive-500: #7A8A4A;
+  --copper-500: #9C6A3E;
+
+  /* Night (dark theme surfaces) */
+  --night-950: #161210;
+  --night-900: #221B14;
+  --night-800: #2E241B;
+
+  /* Status (Doc 02 set, per Doc 12) */
+  --status-danger:  #A63A2E;
+  --status-danger-fill: #A63A2E; /* fills keep the deep red in both themes; cream text passes on it */
+  --status-warning: #B4832A;
+  --status-success: #3A6B4C;
+  --status-info:    #3A5A6B;
+
+  /* Semantic aliases (light) */
+  --bg:              var(--cream-50);
+  --bg-elev:         #FFFDF8;      /* near-white cream, never pure white (Doc 12) */
+  --surface:         var(--cream-100);
+  --divider:         var(--cream-200);
+  --text-primary:    var(--ink-900);
+  --text-secondary:  var(--ink-700);
+  --text-muted:      var(--ink-500);
+  --accent:          var(--forest-600);
+  --accent-hover:    var(--forest-700);
+  --accent-fill:       var(--forest-600); /* button fills: cream text passes 6.7:1 in both themes */
+  --accent-fill-hover: var(--forest-700);
+  --accent-wash:     var(--forest-100);
+  --focus-ring:      var(--forest-600);
+  --accent-wash-text: var(--forest-700);
+
+  /* Typography */
+  --font-display: "Fraunces Variable", ui-serif, Georgia, serif;
+  --font-sans:    "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --fs-display: clamp(2.75rem, 4vw + 1rem, 5.25rem);
+  --fs-h1:      clamp(2.125rem, 2vw + 1rem, 3.5rem);
+  --fs-h2:      clamp(1.75rem, 1.2vw + 1rem, 2.5rem);
+  --fs-h3:      clamp(1.375rem, 0.6vw + 1rem, 1.625rem);
+  --fs-lead:    clamp(1.125rem, 0.3vw + 1rem, 1.25rem);
+  --fs-body:    clamp(1rem, 0.1vw + 0.95rem, 1.0625rem);
+  --fs-small:   0.875rem;
+  --fs-tiny:    0.75rem;
+
+  --lh-tight:   1.12;
+  --lh-heading: 1.2;
+  --lh-body:    1.6;
+
+  /* Spacing (8px base) */
+  --sp-1:  0.25rem;
+  --sp-2:  0.5rem;
+  --sp-3:  0.75rem;
+  --sp-4:  1rem;
+  --sp-5:  1.25rem;
+  --sp-6:  1.5rem;
+  --sp-8:  2rem;
+  --sp-10: 2.5rem;
+  --sp-12: 3rem;
+  --sp-16: 4rem;
+  --sp-20: 5rem;
+  --sp-24: 6rem;
+
+  /* Radii */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --r-2xl: 32px;
+
+  /* Shadows (soft, no glow) */
+  --shadow-sm: 0 1px 2px rgba(31, 25, 18, 0.08);
+  --shadow-md: 0 4px 12px rgba(31, 25, 18, 0.10);
+  --shadow-lg: 0 12px 32px rgba(31, 25, 18, 0.12);
+
+  /* Motion */
+  --dur-instant: 100ms;
+  --dur-fast:    200ms;
+  --dur-med:     400ms;
+  --dur-slow:    800ms;
+  --ease-enter:  cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-exit:   cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Layout */
+  --content-max: 1240px;
+  --content-narrow: 720px;
+  --measure: 68ch;
+}
+
+html[data-theme="dark"] {
+  --bg:              var(--night-950);
+  --bg-elev:         var(--night-900);
+  --surface:         var(--night-800);
+  --divider:         #3A2F24;
+  --text-primary:    var(--cream-25);
+  --text-secondary:  var(--cream-200);
+  --text-muted:      var(--cream-350);
+  --accent:          #7C9B74;  /* measured: 6.0:1 on night-950, 4.9:1 on night-800; forest-500 fails AA */
+  --accent-hover:    #86A57E;
+  --accent-wash:     rgba(91, 124, 86, 0.18);
+  --focus-ring:      var(--cream-350);
+
+  /* Status text lightened for AA on night surfaces (measured; docs had no dark set) */
+  --status-danger:  #D06A58;
+  --status-warning: #C99A3F;
+  --status-success: #5E9271;
+  --status-info:    #6C93A8;
+  --accent-wash-text: var(--cream-100);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-display);
+
+  --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
+  --color-surface: var(--surface);
+  --color-divider: var(--divider);
+  --color-text: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-wash: var(--accent-wash);
+  --color-accent-fill: var(--accent-fill);
+  --color-accent-fill-hover: var(--accent-fill-hover);
+  --color-accent-wash-text: var(--accent-wash-text);
+
+  --color-ink-900: var(--ink-900);
+  --color-ink-700: var(--ink-700);
+  --color-ink-500: var(--ink-500);
+  --color-cream-25: var(--cream-25);
+  --color-cream-50: var(--cream-50);
+  --color-cream-100: var(--cream-100);
+  --color-cream-200: var(--cream-200);
+  --color-forest-100: var(--forest-100);
+  --color-forest-500: var(--forest-500);
+  --color-forest-600: var(--forest-600);
+  --color-forest-700: var(--forest-700);
+  --color-olive-500: var(--olive-500);
+  --color-copper-500: var(--copper-500);
+  --color-status-danger: var(--status-danger);
+  --color-status-danger-fill: var(--status-danger-fill);
+  --color-status-warning: var(--status-warning);
+  --color-status-success: var(--status-success);
+  --color-status-info: var(--status-info);
+
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+
+  --spacing-container: var(--content-max);
+  --spacing-narrow: var(--content-narrow);
+}
+
+/* Base styles live in @layer base so utilities can override them. */
+@layer base {
+
+html {
+  color-scheme: light dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, .display {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 30, "WONK" 0;
+  color: var(--text-primary);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: var(--fs-h1); }
+h2 { font-size: var(--fs-h2); }
+h3 { font-size: var(--fs-h3); }
+
+.display {
+  font-size: var(--fs-display);
+  line-height: var(--lh-tight);
+  text-wrap: balance;
+}
+
+::selection {
+  background: var(--forest-600);
+  color: var(--cream-50);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: the reduced-motion floor must beat utility and inline animation values, which is the whole point of Doc 05 §11. */
+    animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: the reduced-motion floor must beat utility and inline animation values, which is the whole point of Doc 05 §11. */
+    animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: the reduced-motion floor must beat utility and inline transition values, which is the whole point of Doc 05 §11. */
+    transition-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: overrides the scroll-behavior set on html above, which is more specific than this universal selector. */
+    scroll-behavior: auto !important;
+  }
+}
+
+}
+
+/* Skeleton pulse (Doc 05 C5): barely perceptible, static under reduced motion. */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.skeleton { animation: skeleton-pulse 1600ms ease-in-out infinite; }
+
+/* Print stylesheet for the menu (Doc 09 §3.5): clean single page, no chrome. */
+@media print {
+  /* biome-ignore lint/complexity/noImportantStyles: print must drop site chrome regardless of the display utility a component sets on itself (Doc 09 §3.5). */
+  header, footer, .print\:hidden { display: none !important; }
+  body { background: #fff; color: #000; }
+}
