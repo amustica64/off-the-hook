@@ -289,11 +289,33 @@ function ChapterLayer({
 	const [kbFrom, kbTo] = hero.kenburns;
 
 	/*
-	  Register N4. The warp is the most expensive thing on the site: a 14px blur
-	  across a full viewport image. useCanWarp asks the device whether it can
-	  take it. Where it cannot, the gesture degrades to a scale and cross
-	  dissolve at hero.dissolveScaleTo, which is the same movement at a fraction
-	  of the cost. Capability, never user agent.
+	  Register N4, reconciled against Doc 17 §3 and §7 on 31 August 2026.
+
+	  Doc 17 §7 names "the cross dissolve fallback in the hero decision record"
+	  as the mitigation for blur cost. That record, in §3, reads in full:
+	  "Reversal trigger: if a mid tier Android cannot hold the blur at 60fps,
+	  drop the blur and keep a scroll linked cross dissolve plus the line, which
+	  is cheap."
+
+	  What matches: blur to zero, cross dissolve, and now the line, which this
+	  code used to drop.
+
+	  Two things still diverge, both flagged for Abbey rather than quietly kept.
+
+	  1. Doc 17 frames this as a REVERSAL TRIGGER, a decision taken once after
+	     measuring a mid tier Android, not a per device runtime fork. §6 item 1
+	     makes "holds 60fps with the blur on a mid tier Android" the done
+	     criterion, and that measurement has never been taken. useCanWarp instead
+	     forks automatically per device, which ships two experiences and device
+	     tests neither. It is defensible engineering and it is not what the doc
+	     specifies.
+	  2. hero.dissolveScaleTo (1.03) is invented. Doc 17 §2's token set has no
+	     such token, and the record says cross dissolve, which is opacity. The
+	     scale is kept because it holds the shape of the gesture, but it is not
+	     doc backed.
+
+	  The 8 core threshold below remains a judgement call with no doc behind it.
+	  Capability, never user agent.
 	*/
 	const outScale = canWarp ? hero.outScaleTo : hero.dissolveScaleTo;
 	const inScale = canWarp ? hero.inScaleFrom : hero.dissolveScaleTo;
@@ -441,8 +463,18 @@ function ChapterLayer({
 				<ChapterFrame chapter={chapter} isFirst={isFirst} />
 			</motion.div>
 
-			{/* The hairline riding the wipe edge. Only meaningful with the wipe. */}
-			{canWarp && !isFirst ? (
+			{/*
+			  The hairline. It rides the wipe edge when there is a wipe, and keeps
+			  travelling as a scroll linked sweep when there is not.
+
+			  Reconciled against Doc 17 §3 on 31 August 2026. It used to be gated on
+			  canWarp, so the fallback dropped it. The decision record is explicit
+			  that the fallback keeps it: "drop the blur and keep a scroll linked
+			  cross dissolve plus the line, which is cheap." Doc 14 makes the line
+			  the single brand device across the whole site, so dropping it on the
+			  cheap path dropped the one thing that must not go.
+			*/}
+			{!isFirst ? (
 				<motion.div
 					aria-hidden="true"
 					className="absolute inset-y-0 z-20 w-[2px] bg-cream-50"

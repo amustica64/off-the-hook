@@ -200,10 +200,12 @@ Every primitive:
 
 **Scope (from Doc 6 in full):**
 - Create Supabase project, link to repo.
-- Write Drizzle schema for every table in Doc 6: `stories`, `menu_items`, `menu_sections`, `academy_cohorts`, `academy_lessons`, `impact_metrics`, `partners`, `employers`, `enquiries`, `referrals`, `donations`, `press`, `pages_meta`, `redirects`.
+- Write Drizzle schema for every table in Doc 6 § 3: `pages`, `journey_steps`, `impact_metrics`, `stories`, `menu_items`, `events`, `partners`, `bookings`, `enquiries`, `referrals`, `subscribers`, `users`, `audit_log`, plus `rate_limits` from Doc 6 § 5.1.
 - Migrations committed and applied to Supabase.
 - RLS policies on every table (Doc 6 lists the read/write shape per table).
-- `SECURITY DEFINER` RPCs for privileged writes (`submit_referral`, `submit_enquiry`, `record_donation`).
+- `SECURITY DEFINER` RPCs for privileged writes, named exactly as Doc 6 § 5 names them. The public gates are `submit_booking`, `submit_enquiry`, `subscribe_newsletter`, `confirm_subscription` and `unsubscribe`; the safeguarding intake is `create_referral`, not `submit_referral`.
+
+> **Corrected 31 August 2026.** This phase previously listed `menu_sections`, `academy_cohorts`, `academy_lessons`, `employers`, `donations`, `press`, `pages_meta` and `redirects`, none of which exist in Doc 6 § 3 or in the build, and omitted eight tables that do. It also named `submit_referral` and `record_donation`. Doc 6 is the authority on schema under § 1 of this brief, so this section was the stale side. `record_donation` is removed rather than renamed: see Phase 6.
 - Seed script that populates a realistic dev dataset (no lorem ipsum, use the copy from Doc 9).
 
 **Done when:** `pnpm db:migrate` and `pnpm db:seed` succeed on a fresh Supabase project, RLS blocks anonymous writes, and a Playwright test confirms an anon user can read stories but not insert one.
@@ -246,7 +248,9 @@ Build in this order, one per session. Read the matching section of Doc 9 before 
 - Referral form (referral partners) → `submit_referral` RPC → email via Resend.
 - Enquiry form (general contact) → `submit_enquiry` RPC → email.
 - Employer enquiry (hire) → `submit_enquiry` with `type='employer'`.
-- Donation intent form → Stripe Checkout (test mode first) → webhook → `record_donation`.
+- Donation intent form → an expression of interest stored in `enquiries` with `type='donation'`. No Stripe, no webhook, no `record_donation` RPC and no `donations` table.
+
+> **Corrected 31 August 2026.** This line previously specified Stripe Checkout, a webhook and a `record_donation` RPC. Doc 12 rules Stripe out of the launch in favour of an expression of interest, and Doc 9 § 3.18 builds the donate page that way, with a GiftAid tick that records intent only and a bank details fallback in the confirmation. There is no `donations` table in Doc 6 § 3 and none should be created. Stripe returns as a phase two decision, not a launch requirement.
 - Newsletter signup → Resend audience.
 - Every form:
   - Zod schema shared client/server
@@ -275,7 +279,17 @@ Build in this order, one per session. Read the matching section of Doc 9 before 
 
 **Entry gate:** Phase 7 done.
 
-**Scope (from Doc 9 admin section, 9 screens):**
+**Scope (from Doc 9 § 4, which specifies fourteen admin surfaces):**
+
+> **Reconciled 31 August 2026. Doc 9 wins, so the number is fourteen, not nine.**
+> Section 1 of this brief already makes Doc 9 the authority on screen content
+> and inventory, and Doc 9 § 4 is headed "Admin surfaces (14)". The nine below
+> were a partial list: they omit the surfaces Doc 6 § 8 also requires, which are
+> the sidebar entries for pages, journey, events, bookings, subscribers, users
+> and the audit log, and Doc 7 § 2's folder layout lists those same routes under
+> `app/admin/`. Three documents agree on the larger set and only this line
+> disagreed. The two day estimate below was scoped against nine and needs
+> re-estimating against fourteen before Phase 8 is planned.
 - Auth gate: Supabase Auth, magic link only, roles `admin` and `editor`.
 - `/admin` dashboard
 - `/admin/stories` list and edit
