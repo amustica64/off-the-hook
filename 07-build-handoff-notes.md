@@ -570,6 +570,14 @@ ENABLE_DONATIONS=false
 
 Never commit `.env.local`. Add `.env.example` with the same keys and empty values.
 
+**There is deliberately no encryption key variable here.** Referral notes are
+encrypted by the database, not by the application, so the key must never reach
+the app's environment. In production `enc_key()` reads the `app_enc_key` secret
+from Supabase Vault (Doc 13 §7). Locally it falls back to the `app.enc_key`
+GUC, set once as a database default by `pnpm db:key`, never per connection: a
+per-connection `SET` is not reliable under a transaction-mode pooler, which is
+what broke the referral form before 31 August 2026.
+
 ## 8. Motion helper
 
 `lib/motion.ts` mirrors CSS tokens for Framer Motion. Do not duplicate values in components:
@@ -620,7 +628,15 @@ Wrap `useReducedMotion` in a helper that returns the correct preset for reduced-
 4. Set the auth config: email + magic link only, disable password sign-in, disable email confirmation for admin invites (they arrive by invitation from `auth.admin.inviteUserByEmail`).
 5. Apply the `custom_access_token_hook` to inject `role` into JWTs (see Doc 6 section 3.12).
 6. Create the roles in `users`: `admin`, `editor`, `manager`, `safeguarding`, `kitchen`.
-7. Run Drizzle migrations. Seed dev data (`db/seed.ts`).
+7. Create the Vault secret `app_enc_key`, a long random value, and store the
+   only other copy in the CIC's password manager. `enc_key()` reads this and
+   nothing else in production. Rotating it makes every referral note already
+   stored undecryptable, so rotation needs a re-encryption step written first.
+8. Run the migrations, including `0002_enc_key_vault.sql`. Seed dev data.
+9. Run `pnpm db:proof`. It must print `ALL RLS PROOFS PASSED`. It provisions no
+   key of its own by design, so if it fails with "encryption key not
+   configured" the Vault secret in step 7 is missing, and the referral form
+   would fail the same way.
 
 ## 10. Auth, roles, and middleware
 

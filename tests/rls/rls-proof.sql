@@ -7,6 +7,12 @@
 reset role;
 delete from rate_limits;
 
+-- The proof's own referral fixtures, cleared by referrer so nothing else is
+-- touched. Referral notes are encrypted with whatever key the environment
+-- supplies, so a row left behind by a run under a different key would fail to
+-- decrypt in section 10 and read as a code defect rather than stale fixture.
+delete from referrals where referrer_email in ('mark@stgiles.org.uk', 'guard@example.com');
+
 -- Helper to switch identity: set the pg role and the JWT claims like Supabase does.
 -- anon: role anon, empty claims. Staff: role authenticated + role claim.
 
@@ -39,8 +45,47 @@ do $$ begin
   raise exception 'anon updated menu directly';
 exception when insufficient_privilege then null; end $$;
 
+-- 3b. The key comes from the environment, never from this file.
+--
+-- Regression guard for the defect found on 30 August 2026. create_referral
+-- encrypts notes with enc_key(), and nothing in the application ever set the
+-- GUC it read, so the referral form failed on every environment. This file
+-- used to set the GUC itself two lines above the call, which meant it proved
+-- its own harness and could never have caught that.
+--
+-- Nothing below provisions a key. Production supplies it from Supabase Vault,
+-- local development from the database default set by `pnpm db:key`. If section
+-- 4 now fails with "encryption key not configured", the environment is not
+-- provisioned, which is exactly the failure the application would hit.
+do $$
+declare v uuid; saved text;
+begin
+  if to_regclass('vault.decrypted_secrets') is not null then
+    raise notice 'vault reachable, skipping the no-key assertion (it cannot be simulated here)';
+  else
+    -- Blank the key for this assertion only, then put it back. The whole file
+    -- may run inside one implicit transaction, so a transaction-scoped
+    -- set_config would otherwise leak into every later section.
+    saved := coalesce(current_setting('app.enc_key', true), '');
+    perform set_config('app.enc_key', '', true);
+    begin
+      v := create_referral(jsonb_build_object(
+        'referrer_name','Guard','referrer_organisation','Guard','referrer_email','guard@example.com',
+        'candidate_first_name','Guard','candidate_last_name_initial','g',
+        'notes','must not be stored without a key','ip_hash','no-key-probe'));
+      perform set_config('app.enc_key', saved, true);
+      raise exception 'create_referral stored notes with no encryption key configured';
+    exception when others then
+      perform set_config('app.enc_key', saved, true);
+      if sqlerrm not like '%encryption key not configured%' then raise; end if;
+    end;
+    if coalesce(current_setting('app.enc_key', true), '') <> saved then
+      raise exception 'the no-key guard did not restore the key it borrowed';
+    end if;
+  end if;
+end $$;
+
 -- 4. Anonymous CAN submit through the public RPC gates
-select set_config('app.enc_key', 'dev-only-key', false);
 do $$
 declare v uuid;
 begin
@@ -118,13 +163,12 @@ end $$;
 -- 10. Safeguarding reads a referral, notes decrypt, and the read is audited
 select set_config('request.jwt.claims',
   '{"sub":"00000000-0000-0000-0000-000000000003","role":"safeguarding","email":"sg@dev"}', false);
-select set_config('app.enc_key', 'dev-only-key', false);
 do $$
 declare r jsonb; audit_before int; audit_after int;
 begin
   if (select count(*) from referrals) < 1 then raise exception 'safeguarding cannot read referrals'; end if;
   select count(*) into audit_before from audit_log where action = 'read_referral';
-  r := read_referral((select id from referrals limit 1));
+  r := read_referral((select id from referrals where referrer_email = 'mark@stgiles.org.uk' order by created_at desc limit 1));
   if r->>'notes' <> 'Sensitive context here' then raise exception 'notes did not decrypt'; end if;
   select count(*) into audit_after from audit_log where action = 'read_referral';
   if audit_after <> audit_before + 1 then raise exception 'referral read was not audited'; end if;
