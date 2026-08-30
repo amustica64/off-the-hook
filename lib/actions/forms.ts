@@ -2,10 +2,16 @@
 
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
-import { callCreateReferral, callSubmitEnquiry } from "@/lib/rpc";
 import {
+	callCreateReferral,
+	callSubmitBooking,
+	callSubmitEnquiry,
+} from "@/lib/rpc";
+import {
+	bookingSchema,
 	enquirySchema,
 	fieldErrors,
+	joinSchema,
 	referralSchema,
 } from "@/lib/validation/forms";
 
@@ -133,6 +139,154 @@ export async function submitReferralAction(
 			err instanceof Error && err.message.includes("rate limited")
 				? "You've submitted a few times. Please wait a minute and try again."
 				: "Something went wrong at our end. Please try again, or call us if it is urgent.";
+		return { status: "error", errors: { form: msg } };
+	}
+}
+
+/*
+  Booking. Doc 09 §3.7 sign-off requires the row to land in `bookings` via the
+  submit_booking RPC. The RPC wants first_name and last_name; Doc 04 asks for a
+  single "Name" field, so the split happens here rather than making a diner
+  fill in two boxes. A one word name keeps last_name as a dash, which the RPC
+  requires to be non-empty.
+*/
+export async function submitBookingAction(
+	_prev: FormState,
+	form: FormData,
+): Promise<FormState> {
+	const parsed = bookingSchema.safeParse({
+		name: form.get("name"),
+		email: form.get("email"),
+		phone: form.get("phone"),
+		party_size: form.get("party_size"),
+		party_note: form.get("party_note") || undefined,
+		date: form.get("date"),
+		time: form.get("time"),
+		occasion: form.get("occasion") || undefined,
+		notes: form.get("notes") || undefined,
+		gdpr_consent: form.get("gdpr_consent") === "on",
+		website: form.get("website") ?? "",
+	});
+	if (!parsed.success)
+		return { status: "error", errors: fieldErrors(parsed.error) };
+	if (parsed.data.website) return { status: "ok" };
+	if (!(await turnstileOk(form.get("cf-turnstile-response")))) {
+		return {
+			status: "error",
+			errors: { form: "We could not verify the form. Please try again." },
+		};
+	}
+
+	const d = parsed.data;
+	const requested = new Date(`${d.date}T${d.time}`);
+	if (Number.isNaN(requested.getTime())) {
+		return {
+			status: "error",
+			errors: { date: "That date and time did not read as a real time." },
+		};
+	}
+
+	const [first, ...rest] = d.name.split(/\s+/);
+	/*
+	  Occasion and the large-party note have no column of their own in Doc 06
+	  §3.8, so they ride in dietary_notes, labelled, rather than inventing a
+	  column. Flagged for the admin build: a booking manager reads one field.
+	*/
+	const notes = [
+		d.occasion && d.occasion !== "none" ? `Occasion: ${d.occasion}` : null,
+		d.party_note ? `Party of ${d.party_size}: ${d.party_note}` : null,
+		d.notes || null,
+	]
+		.filter(Boolean)
+		.join("\n");
+
+	try {
+		await callSubmitBooking({
+			type: "restaurant",
+			first_name: first,
+			last_name: rest.join(" ") || "-",
+			email: d.email,
+			phone: d.phone,
+			party_size: d.party_size,
+			requested_at: requested.toISOString(),
+			dietary_notes: notes || null,
+			gdpr_consent: true,
+			ip_hash: await ipHash(),
+		});
+		return { status: "ok" };
+	} catch (err) {
+		const msg =
+			err instanceof Error && err.message.includes("rate limited")
+				? "You've submitted a few times. Please wait a minute and try again."
+				: "Something went wrong at our end. Your details are still here, try again.";
+		return { status: "error", errors: { form: msg } };
+	}
+}
+
+/*
+  Join. Doc 09 §3.16 sign-off requires the row to land in `enquiries` tagged
+  trainee. There is no email field on this form on purpose, so migration 0003
+  relaxes the NOT NULL and requires an email or a phone instead. The referral
+  status and the best time to call go in `metadata`, which Doc 06 §3.9 provides
+  for exactly this ("form-specific fields, Zod-validated per type").
+*/
+export async function submitJoinAction(
+	_prev: FormState,
+	form: FormData,
+): Promise<FormState> {
+	const parsed = joinSchema.safeParse({
+		name: form.get("name"),
+		phone: form.get("phone"),
+		best_time: form.get("best_time"),
+		referral_status: form.get("referral_status"),
+		notes: form.get("notes") || undefined,
+		gdpr_consent: form.get("gdpr_consent") === "on",
+		website: form.get("website") ?? "",
+	});
+	if (!parsed.success)
+		return { status: "error", errors: fieldErrors(parsed.error) };
+	if (parsed.data.website) return { status: "ok" };
+	if (!(await turnstileOk(form.get("cf-turnstile-response")))) {
+		return {
+			status: "error",
+			errors: { form: "We could not verify the form. Please try again." },
+		};
+	}
+
+	const d = parsed.data;
+	const [first, ...rest] = d.name.split(/\s+/);
+	const message = d.notes?.trim()
+		? d.notes.trim()
+		: "Interested in training. Sent from the join page with no extra notes.";
+
+	try {
+		await callSubmitEnquiry({
+			type: "trainee",
+			first_name: first,
+			last_name: rest.join(" "),
+			email: "",
+			phone: d.phone,
+			message,
+			metadata: {
+				best_time_to_call: d.best_time,
+				referral_status: d.referral_status,
+				safeguarding_primary: true,
+			},
+			gdpr_consent: true,
+			source_page: "/join",
+			ip_hash: await ipHash(),
+		});
+		return { status: "ok" };
+	} catch (err) {
+		// Never log the payload on this route either. It identifies a prison leaver.
+		console.error(
+			"join submit failed:",
+			err instanceof Error ? err.message : "unknown",
+		);
+		const msg =
+			err instanceof Error && err.message.includes("rate limited")
+				? "You've sent this a few times. Please wait a minute and try again."
+				: "Something went wrong at our end. Please try again, or call us.";
 		return { status: "error", errors: { form: msg } };
 	}
 }

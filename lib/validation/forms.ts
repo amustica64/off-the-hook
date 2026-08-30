@@ -26,6 +26,7 @@ export const enquirySchema = z.object({
 		"educator",
 		"volunteer",
 		"donation",
+		"trainee",
 	]),
 	first_name: required("Your name"),
 	last_name: z.string().trim().default(""),
@@ -82,3 +83,57 @@ export function fieldErrors(error: z.ZodError): Record<string, string> {
 	}
 	return out;
 }
+
+/*
+  Booking. Fields and order per Doc 04 /restaurant/book, which Doc 09 §3.7 locks.
+  Date and time are collected separately because a native date input and a
+  native time input are what a phone gives you, then combined server side into
+  the single `requested_at` timestamp the bookings table holds.
+*/
+export const bookingSchema = z.object({
+	name: required("Your name"),
+	email,
+	phone: required("A phone number"),
+	party_size: z.coerce
+		.number()
+		.int()
+		.min(1, "Party size is required.")
+		.max(40, "For more than 40, please call us."),
+	party_note: z.string().trim().max(200).optional(),
+	date: required("A preferred date"),
+	time: required("A preferred time"),
+	occasion: z
+		.enum(["none", "birthday", "anniversary", "business", "other"])
+		.optional(),
+	notes: z
+		.string()
+		.trim()
+		.max(500, "Please keep notes under 500 characters.")
+		.optional(),
+	gdpr_consent: z.boolean().refine((v) => v === true, {
+		message: "Please tick the box so we can confirm your table.",
+	}),
+	website: honeypot,
+});
+
+export type BookingInput = z.infer<typeof bookingSchema>;
+
+/*
+  Join. Five fields only, per Doc 04 /join and Doc 09 §3.16, and no email:
+  the audience is mobile-only and low-data, and many will not have one. A name
+  or an alias is accepted, because a first name is enough to start a
+  conversation and this page must not feel like a form that catches you out.
+*/
+export const joinSchema = z.object({
+	name: required("Your name, or a name you want us to use"),
+	phone: required("A phone number"),
+	best_time: z.enum(["morning", "afternoon", "evening", "any"]),
+	referral_status: z.enum(["referred", "self_referring", "not_sure"]),
+	notes: z.string().trim().max(500).optional(),
+	gdpr_consent: z.boolean().refine((v) => v === true, {
+		message: "Please tick the box so we can call you back.",
+	}),
+	website: honeypot,
+});
+
+export type JoinInput = z.infer<typeof joinSchema>;

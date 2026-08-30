@@ -12,7 +12,7 @@
 		"test": "vitest run",
 		"test:e2e": "playwright test",
 		"db:generate": "drizzle-kit generate",
-		"db:migrate": "psql $DATABASE_URL -v ON_ERROR_STOP=1 -f db/migrations/0000_init.sql -f db/migrations/0001_rls_and_rpcs.sql -f db/migrations/0002_enc_key_vault.sql",
+		"db:migrate": "psql $DATABASE_URL -v ON_ERROR_STOP=1 -f db/migrations/0000_init.sql -f db/migrations/0001_rls_and_rpcs.sql -f db/migrations/0002_enc_key_vault.sql -f db/migrations/0003_trainee_enquiries_without_email.sql",
 		"db:key": "psql $DATABASE_URL -v ON_ERROR_STOP=1 -f db/dev-key.sql",
 		"db:seed": "psql $DATABASE_URL -v ON_ERROR_STOP=1 -f db/seed.sql",
 		"db:proof": "psql $DATABASE_URL -f tests/rls/rls-proof.sql"
