@@ -9,6 +9,7 @@ import {
 } from "@/lib/rpc";
 import {
 	bookingSchema,
+	contactSchema,
 	enquirySchema,
 	fieldErrors,
 	joinSchema,
@@ -287,6 +288,58 @@ export async function submitJoinAction(
 			err instanceof Error && err.message.includes("rate limited")
 				? "You've sent this a few times. Please wait a minute and try again."
 				: "Something went wrong at our end. Please try again, or call us.";
+		return { status: "error", errors: { form: msg } };
+	}
+}
+
+/*
+  General contact. Doc 04 §/contact. The row lands in `enquiries` tagged
+  `contact`, a type submit_enquiry already accepts, so no migration is needed.
+  The subject goes to `metadata` for the reason set out on contactSchema.
+*/
+export async function submitContactAction(
+	_prev: FormState,
+	form: FormData,
+): Promise<FormState> {
+	const parsed = contactSchema.safeParse({
+		name: form.get("name"),
+		email: form.get("email"),
+		subject: form.get("subject"),
+		message: form.get("message"),
+		gdpr_consent: form.get("gdpr_consent") === "on",
+		website: form.get("website") ?? "",
+	});
+	if (!parsed.success)
+		return { status: "error", errors: fieldErrors(parsed.error) };
+	if (parsed.data.website) return { status: "ok" }; // honeypot: pretend success, write nothing
+	if (!(await turnstileOk(form.get("cf-turnstile-response")))) {
+		return {
+			status: "error",
+			errors: { form: "We could not verify the form. Please try again." },
+		};
+	}
+
+	const d = parsed.data;
+	const [first, ...rest] = d.name.trim().split(/s+/);
+
+	try {
+		await callSubmitEnquiry({
+			type: "contact",
+			first_name: first,
+			last_name: rest.join(" "),
+			email: d.email,
+			message: d.message,
+			metadata: { subject: d.subject },
+			gdpr_consent: true,
+			source_page: "/contact",
+			ip_hash: await ipHash(),
+		});
+		return { status: "ok" };
+	} catch (err) {
+		const msg =
+			err instanceof Error && err.message.includes("rate limited")
+				? "You've sent this a few times. Please wait a minute and try again."
+				: "Something went wrong at our end. Your message is still here, try again.";
 		return { status: "error", errors: { form: msg } };
 	}
 }

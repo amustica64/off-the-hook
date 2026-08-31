@@ -139,11 +139,9 @@ off-the-hook/
 │   ├── admin/                       # Admin components
 │   └── motion/                      # Motion helpers (see Doc 5 section 15)
 ├── content/                         # MDX for legal pages
-│   ├── privacy.mdx
-│   ├── cookies.mdx
-│   ├── terms.mdx
-│   ├── safeguarding.mdx
-│   └── accessibility.mdx
+│   └── legal/                       # one file per published legal route
+│       ├── cookies.mdx
+│       └── accessibility.mdx        # the other four are unpublished, see below
 ├── db/
 │   ├── schema/                      # Drizzle schema files
 │   ├── migrations/                  # Committed migrations
@@ -728,8 +726,15 @@ Each page is considered "done" when all criteria pass.
 - Hire form saves to `enquiries` with `type='hire'`.
 
 ### Legal
-- Privacy, cookies, terms, safeguarding, and accessibility pages render from MDX.
-- Cookies banner respects consent choices.
+- The six routes of Doc 03 §/legal render from one template, content from MDX.
+- Corrected 31 August 2026, twice. There is no `terms` route: Doc 03 §/legal,
+  Doc 04 §/legal/*, Doc 09 §3.23 and the built footer all give the same six,
+  and none of them includes terms. The six are privacy, cookies, safeguarding,
+  accessibility, cic-declaration and modern-slavery.
+- The cookies banner is struck. The site sets no cookies at all, so there is
+  nothing to take consent for. Re-open this the moment anything changes that,
+  Turnstile included: enabling it puts a Cloudflare widget in the page and this
+  line and `content/legal/cookies.mdx` both have to be revisited.
 
 ### Admin
 - Login works, magic link only.

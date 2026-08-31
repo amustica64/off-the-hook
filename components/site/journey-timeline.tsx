@@ -58,7 +58,7 @@ export function JourneyTimeline({ steps }: { steps: Step[] }) {
 					viewport={{ once: true }}
 					transition={{ duration: reduced ? 0 : dur.slow, ease: easeEnter }}
 				/>
-				{/* biome-ignore lint/a11y/useSemanticElements: tablist composite per WAI-ARIA tabs pattern */}
+				{/* tablist composite per the WAI-ARIA tabs pattern */}
 				<div
 					role="tablist"
 					aria-label="The seven steps"

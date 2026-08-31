@@ -51,6 +51,7 @@ const columns = [
 /* Lucide removed brand icons in v1; these two are drawn on the same 24px grid, 1.5px stroke. */
 function InstagramIcon() {
 	return (
+		// biome-ignore lint/a11y/noSvgWithoutTitle: decorative icon, aria-hidden; a title would announce it to assistive tech
 		<svg
 			width="20"
 			height="20"
@@ -71,6 +72,7 @@ function InstagramIcon() {
 
 function LinkedinIcon() {
 	return (
+		// biome-ignore lint/a11y/noSvgWithoutTitle: decorative icon, aria-hidden; a title would announce it to assistive tech
 		<svg
 			width="20"
 			height="20"

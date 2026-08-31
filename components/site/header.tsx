@@ -29,6 +29,7 @@ export function Header() {
 	}, []);
 
 	// Close the dropdown on route change and on Escape (Doc 03 §16).
+	// biome-ignore lint/correctness/useExhaustiveDependencies: pathname is the trigger, not a value the effect reads
 	useEffect(() => setDropdownOpen(false), [pathname]);
 	useEffect(() => {
 		if (!dropdownOpen) return;

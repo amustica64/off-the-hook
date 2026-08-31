@@ -57,7 +57,7 @@ end $$;
 
 ### 3.1 `pages` (marketing pages)
 
-**What this holds.** The five marketing pages that need editable copy at section granularity: `home`, `restaurant`, `academy`, `impact`, `about`. Legal pages (`privacy`, `cookies`, `terms`, `safeguarding`) live in MDX in the repo; they change rarely and legal review requires diffs.
+**What this holds.** The five marketing pages that need editable copy at section granularity: `home`, `restaurant`, `academy`, `impact`, `about`. Legal pages live in MDX in the repo; they change rarely and legal review requires diffs. (Corrected 31 August 2026: there are six of them, per Doc 03 §/legal, and `terms` is not one. See Doc 07 §Legal.)
 
 **Why editable at section level, not free-form.** Anne needs to change the tagline, the hero paragraph, the CTA labels, and the pull quotes without a developer. She does not need to insert new sections or reorder them.
 

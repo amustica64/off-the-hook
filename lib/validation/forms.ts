@@ -137,3 +137,27 @@ export const joinSchema = z.object({
 });
 
 export type JoinInput = z.infer<typeof joinSchema>;
+
+/*
+  General contact. Doc 04 §/contact names the component GeneralContactForm and
+  gives it four fields: name, email, subject, message. Doc 09 §3.20 repeats the
+  count, so the six-field EnquiryForm used on the partner pages is the wrong
+  shape here.
+
+  `subject` has no column in Doc 06 §3.9. It rides in `metadata`, labelled, the
+  same way the join page carries the best time to call. Adding a column for one
+  form's field is the worse trade, and metadata is what Doc 06 §3.9 provides it
+  for ("form-specific fields, Zod-validated per type").
+*/
+export const contactSchema = z.object({
+	name: required("Your name"),
+	email,
+	subject: required("A subject"),
+	message: required("A message"),
+	gdpr_consent: z.boolean().refine((v) => v === true, {
+		message: "Please tick the box so we can reply.",
+	}),
+	website: honeypot,
+});
+
+export type ContactInput = z.infer<typeof contactSchema>;

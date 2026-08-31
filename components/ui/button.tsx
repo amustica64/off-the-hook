@@ -29,6 +29,7 @@ const sizes: Record<Size, string> = {
 
 function Spinner() {
 	return (
+		// biome-ignore lint/a11y/noSvgWithoutTitle: decorative icon, aria-hidden; a title would announce it to assistive tech
 		<svg aria-hidden viewBox="0 0 16 16" className="h-4 w-4 animate-spin">
 			<circle
 				cx="8"

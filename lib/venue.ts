@@ -28,6 +28,11 @@ export const venue = {
 	answerHours: "We answer between 10am and 6pm.",
 	/** Null until the venue address is set (Doc 04 empty-state rule). */
 	openingHours: null as OpeningHours | null,
+	/**
+	 * Street address, one line per line, ending with the postcode. Null until
+	 * the lease is signed. Doc 04 §/contact and §/restaurant both print it.
+	 */
+	addressLines: null as readonly string[] | null,
 } as const;
 
 /**

@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { LinkButton } from "@/components/ui/button";
-import { dur, easeEnter, easeExit, lift, stagger } from "@/lib/motion";
+import { dur, easeEnter, lift, stagger } from "@/lib/motion";
 import { primaryNav } from "./nav-data";
 
 /*
