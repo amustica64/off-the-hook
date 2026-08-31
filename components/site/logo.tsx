@@ -3,9 +3,17 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /*
-  Lockup per the pack's logo artwork (public/brand): circular O-and-hook
-  monogram badge plus the Fraunces wordmark, "CIC" letterspaced in forest.
-  The badge crops circular so it sits cleanly on both themes.
+  Lockup per the pack's logo artwork (public/brand): the O-and-hook monogram
+  plus the Fraunces wordmark, "CIC" letterspaced in forest.
+
+  The monogram is mark-o.png, not mark-badge.png. Doc 08 section 4.4 says the
+  logo is never "placed inside a container, box, or badge unless it is the
+  reverse variant used on a dark photo", and this lockup sits on cream in both
+  the header and the footer. mark-o is the same artwork without the badge.
+
+  The intrinsic 200x230 is passed through and the height is set in CSS, so the
+  ratio stays exact. Doc 08 section 4.4 forbids condensing as well as badging,
+  and the badge was square (210x210), so its 30x30 box cannot carry over.
 */
 export function Logo({ className }: { className?: string }) {
 	return (
@@ -14,11 +22,11 @@ export function Logo({ className }: { className?: string }) {
 			className={cn("inline-flex items-center gap-2.5", className)}
 		>
 			<Image
-				src="/brand/mark-badge.png"
+				src="/brand/mark-o.png"
 				alt=""
-				width={30}
-				height={30}
-				className="rounded-full"
+				width={200}
+				height={230}
+				className="h-[30px] w-auto"
 				priority
 			/>
 			<span className="inline-flex items-baseline gap-2">
